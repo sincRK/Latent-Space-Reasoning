@@ -1,6 +1,6 @@
 """ICD-11 benchmark eval with Qwen3 + latent-space perturbation.
 
-Runs the oct20 ICD-11 bench (293 cases, 251 scored) through:
+Runs the oct20 ICD-11 bench (294 cases, 251 scored) through:
   1. baseline — greedy zero-shot (no soft prefix)
   2. perturb@K — random embedding prefix (LSR random_noise) + plurality vote
 
