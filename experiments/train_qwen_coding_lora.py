@@ -27,9 +27,8 @@ from transformers import (
     AutoModelForCausalLM,
     AutoTokenizer,
     BitsAndBytesConfig,
-    TrainingArguments,
 )
-from trl import SFTTrainer
+from trl import SFTConfig, SFTTrainer
 
 
 DEFAULT_MODEL = "Qwen/Qwen3-4B"
@@ -151,7 +150,7 @@ def main() -> None:
 
     print(f"Stage {args.stage}: {len(dataset)} training rows from {dataset_path.name}")
 
-    training_args = TrainingArguments(
+    training_args = SFTConfig(
         output_dir=str(output_dir),
         num_train_epochs=args.epochs,
         per_device_train_batch_size=args.batch_size,
@@ -163,6 +162,8 @@ def main() -> None:
         max_steps=args.max_steps,
         report_to="none",
         remove_unused_columns=False,
+        dataset_text_field="text",
+        max_length=args.max_seq_len,
     )
 
     trainer = SFTTrainer(
@@ -170,8 +171,6 @@ def main() -> None:
         args=training_args,
         train_dataset=dataset,
         processing_class=tokenizer,
-        dataset_text_field="text",
-        max_seq_length=args.max_seq_len,
     )
     trainer.train()
     trainer.model.save_pretrained(str(output_dir))

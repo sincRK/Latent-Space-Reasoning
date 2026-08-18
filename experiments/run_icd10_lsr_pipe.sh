@@ -17,15 +17,24 @@ SFT_JSONL="${SFT_JSONL:-${DATA_DIR}/icd10_catalog_sft.jsonl}"
 LAB_JSONL="${LAB_JSONL:-${DATA_DIR}/lab_corpus.jsonl}"
 ADAPTER_SFT="${ADAPTER_SFT:-${CKPT_DIR}/qwen_icd10_lora}"
 ADAPTER_DAPT="${ADAPTER_DAPT:-${CKPT_DIR}/qwen_icd10_lora_dapt}"
+BENCH_CSV="${BENCH_CSV:-${REPO_ROOT}/notebooks/data/icd10_benchmark.csv}"
+OUTPUT_SUFFIX="${OUTPUT_SUFFIX:-}"
+bench_args() {
+  if [[ -f "${BENCH_CSV}" ]]; then
+    printf '%s\n' --benchmark "${BENCH_CSV}"
+  fi
+}
 step() { echo ""; echo "=== [$*] ==="; }
 stage_smoke() {
   python experiments/run_icd11_lsr_eval.py --taxonomy icd10 --mode baseline --limit 3 \
-    --output "${RESULTS_DIR}/icd10_lsr_smoke.json"
+    $(bench_args) \
+    --output "${RESULTS_DIR}/icd10_lsr_smoke${OUTPUT_SUFFIX}.json"
 }
 stage_eval_pre() {
   mkdir -p "${RESULTS_DIR}"
   python experiments/run_icd11_lsr_eval.py --taxonomy icd10 --mode both --n-seeds "${N_SEEDS}" \
-    --output "${RESULTS_DIR}/icd10_lsr_qwen3_4b_8bit.json"
+    $(bench_args) \
+    --output "${RESULTS_DIR}/icd10_lsr_qwen3_4b_8bit${OUTPUT_SUFFIX}.json"
 }
 stage_build_data() {
   mkdir -p "${DATA_DIR}"
@@ -39,7 +48,8 @@ stage_train() {
 }
 stage_eval_post() {
   python experiments/run_icd11_lsr_eval.py --taxonomy icd10 --mode both --n-seeds "${N_SEEDS}" \
-    --adapter "${ADAPTER_DAPT}" --output "${RESULTS_DIR}/icd10_lsr_finetuned.json"
+    $(bench_args) \
+    --adapter "${ADAPTER_DAPT}" --output "${RESULTS_DIR}/icd10_lsr_finetuned${OUTPUT_SUFFIX}.json"
 }
 STAGE="${1:-}"
 case "${STAGE}" in
